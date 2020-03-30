@@ -43,7 +43,8 @@ def main():
         # print()
 
     # a = 1
-    print_progress(data)
+    print_progress(data, True)
+    # print_progress(data)
     # print_sum(data)
 
 
