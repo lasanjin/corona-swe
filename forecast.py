@@ -69,7 +69,7 @@ def print_function(a, k, dates, b=0):
 
 def print_forecast(a, k, dates, n, b=0):
     for x, date in enumerate(dates):
-        print('{}\t{}'.format(date, int(a * numpy.exp(x * k) + b)))
+        print('{:15}{:>10}'.format(date, int(a * numpy.exp(x * k) + b)))
 
     last = datetime.datetime.strptime(dates[-1], "%y-%m-%d")
 
@@ -79,7 +79,7 @@ def print_forecast(a, k, dates, n, b=0):
     for i, x in enumerate(range(start, end)):
         date = next_date(last, i)
 
-        print('{}\t{}'.format(date, int(a * numpy.exp(x * k) + b)))
+        print('{:15}{:>10}'.format(date, int(a * numpy.exp(x * k) + b)))
 
 
 def next_date(last, i):
