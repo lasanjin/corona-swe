@@ -22,9 +22,9 @@ def main():
     data = parse_data(raw)
 
     # a = 1
-    # print_progress(data, True)  # (date -> total)
-    # print_progress(data)  # (date -> new-cases)
-    # print_sum(data)  # cases per region
+    print_progress(data, True)  # (date: total)
+    # print_progress(data)  # (date: new-cases)
+    # print_sum(data)  # (total-cases: region)
 
 
 def parse_data(raw, a=1):
