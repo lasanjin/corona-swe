@@ -17,16 +17,17 @@ def main():
 
     # url = api.url(a, False, api.MAN)
     url = api.url(a)
-    raw = request(url)
-    data = get_data(raw, a)
+    raw = get_data(url)
+
+    data = parse_data(raw)
 
     # a = 1
-    print_progress(data, True)
-    # print_progress(data)
-    # print_sum(data)
+    # print_progress(data, True)  # (date -> total)
+    # print_progress(data)  # (date -> new-cases)
+    # print_sum(data)  # cases per region
 
 
-def get_data(raw, a):
+def parse_data(raw, a=1):
     data = OrderedDict()
 
     for i in raw['features']:
@@ -65,6 +66,16 @@ def sum_time_series(time_series):
         Counter())
 
 
+def build_progress(data, TOTAL=False):
+    progress = OrderedDict()
+    prev = 0
+    for k, v in data.items():
+        prev += sum(v.values())
+        progress[k] = prev
+
+    return progress
+
+
 def print_sum(data):
     for k, v in sorted(sum_time_series(data).items(), key=lambda k: k[1]):
         print(C.FORMAT.format(k, v))
@@ -79,7 +90,7 @@ def print_progress(data, TOTAL=False):
         print(C.FORMAT.format(k, prev))
 
 
-def request(url):
+def get_data(url):
     try:
         res = requests.get(url)
 

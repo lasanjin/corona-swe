@@ -18,3 +18,12 @@ $ ./fhm-scraper.py
 ```
 $ ./fhm-hax.py
 ```
+
+</br>
+
+ - [forecast](forecast.py) 
+   - Based on exponential growth
+   - **Requires** `numpy` and `scipy`)
+```
+$ ./forecast
+```
