@@ -23,7 +23,7 @@ $ ./fhm_hax.py
 
  - [Forecast](forecast.py) 
    - Based on exponential growth
-   - **Requires** `numpy` and `scipy`)
+   - **Requires** `numpy` and `scipy`
 ```
 $ ./forecast
 ```
