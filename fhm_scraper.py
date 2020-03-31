@@ -209,7 +209,7 @@ class C:
     def file(date=None):
         return 'data/data-' + (datetime.today().strftime('%y-%m-%d')
                                if date is None
-                               else str(date)) + '.txt'
+                               else str(date)) + '.json'
 
     @staticmethod
     def path(p):
