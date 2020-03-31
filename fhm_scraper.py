@@ -42,27 +42,29 @@ def parse_data(driver, button, ndays):
     print(C.SDATA)
     time_series = SortedDict()
 
-    for i in range(ndays):
-        soup = BeautifulSoup(driver.page_source, C.PARSER)
-        div = soup.find(id=C.TABLE_ID)
-        tds = div.find_all('td')
+    try:
+        for i in range(ndays):
+            soup = BeautifulSoup(driver.page_source, C.PARSER)
+            div = soup.find(id=C.TABLE_ID)
+            tds = div.find_all('td')
 
-        dt = tds[1].text
-        date = format_date(dt)
-        time_series[date] = OrderedDict()
-        region = ''
+            dt = tds[1].text
+            date = format_date(dt)
+            time_series[date] = OrderedDict()
+            region = ''
 
-        for i, td in enumerate(tds[2:]):
+            for i, td in enumerate(tds[2:]):
 
-            if i % 2 != 0:
-                n = int(td.text)
-                time_series[date][region] = n
+                if i % 2 != 0:
+                    n = int(td.text)
+                    time_series[date][region] = n
 
-            region = td.text
+                region = td.text
 
-        button.click()
+            button.click()
 
-    driver.quit()
+    finally:
+        driver.quit()
 
     return time_series
 
