@@ -143,7 +143,7 @@ def save_data(data, date):
 
         try:
             f = open(file, "w")
-            json.dump(data, f)
+            json.dump(data, f, ensure_ascii=False)
             f.close()
 
             print(C.SAVED)
