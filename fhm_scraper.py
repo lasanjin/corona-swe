@@ -137,6 +137,7 @@ def format_date(date):
 
 
 def save_data(data, date):
+    create_dir()
     file = C.file(date)
     if not os.path.isfile(file):
 
@@ -152,6 +153,14 @@ def save_data(data, date):
 
         except IOError as eio:
             print("IOError:", eio)
+
+
+def create_dir():
+    try:
+        os.mkdir(C.DIR)
+
+    except FileExistsError:
+        pass
 
 
 def read_data():
@@ -194,6 +203,7 @@ class C:
     TABLE_ID = 'ember252'
     ERROR = 'PAGE DID NOT LOAD IN TIME...\n'
     PARSER = 'html.parser'
+    DIR = 'data'
 
     @staticmethod
     def file(date=None):
