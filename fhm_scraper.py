@@ -19,6 +19,11 @@ from modules.selenium.common.exceptions import TimeoutException
 
 
 def main():
+    data = read_data()
+    if data is not None:
+        print_json(data)
+        quit()
+
     print(C.FDATA)
 
     driver = build_driver()
@@ -31,11 +36,9 @@ def main():
     print(C.OK)
 
     time_series = parse_data(driver, button, ndays)
-    data = parse_time_series(time_series)
+    data, date = parse_time_series(time_series)
 
-    # save_data(data)
-
-    print_json(data)
+    save_data(data, date)
 
 
 def parse_data(driver, button, ndays):
@@ -70,12 +73,13 @@ def parse_data(driver, button, ndays):
 
 
 def parse_time_series(time_series):
-    data = dict()
-    data['TIME_SERIES'] = time_series
-    data['PROGRESS'] = build_progress(time_series)
-    data['TOTAL'] = sum_time_series(time_series)
+    data = OrderedDict()
+    data['NEW_CASES_PER_DAY_REGIONS'] = time_series
+    data['NEW_CASES_PER_DAY'] = build_progress(time_series)
+    data['TOTAL_CASES_PER_DAY'] = build_progress(time_series, True)
+    data['TOTAL_CASES_REGIONS'] = sum_time_series(time_series)
 
-    return data
+    return data, time_series.keys()[-1]
 
 
 def sum_time_series(time_series):
@@ -84,11 +88,11 @@ def sum_time_series(time_series):
         Counter())
 
 
-def build_progress(data):
+def build_progress(data, TOTAL=False):
     progress = OrderedDict()
     prev = 0
     for k, v in data.items():
-        prev += v['Totalt']
+        prev = prev + v['Totalt'] if TOTAL else v['Totalt']
         progress[k] = prev
 
     return progress
@@ -132,31 +136,42 @@ def format_date(date):
     return time
 
 
-def save_data(data):
-    file = C.FILE
-    # if not os.path.isfile(file):
-    try:
-        file = open(file, "w")
-        json.dump(data, file)
-        file.close()
+def save_data(data, date):
+    file = C.file(date)
+    if not os.path.isfile(file):
 
-    except OSError as eos:
-        print('OSError:', eos)
+        try:
+            f = open(file, "w")
+            json.dump(data, f)
+            f.close()
 
-    except IOError as eio:
-        print("IOError:", eio)
+            print(C.SAVED)
+
+        except OSError as eos:
+            print('OSError:', eos)
+
+        except IOError as eio:
+            print("IOError:", eio)
 
 
 def read_data():
-    try:
-        file = open(C.FILE, "r")
-        json_data = json.load(file)
-        file.close()
+    file = C.file()
+    if os.path.isfile(file):
 
-    except IOError as eio:
-        print("IOError:", eio)
+        try:
+            f = open(file, "r")
+            json_data = json.load(f)
+            f.close()
 
-    return json_data
+            print(C.LOADED)
+
+        except IOError as eio:
+            print("IOError:", eio)
+
+        return json_data
+
+    else:
+        return None
 
 
 def print_json(json_data):
@@ -172,12 +187,19 @@ class C:
     FDATA = "\nFETCHING DATA...\n"
     SDATA = "SCRAPING DATA...\n"
     OK = 'OK\n'
+    LOADED = '\nDATA LOADED\n'
+    SAVED = 'DATA SAVED, RUN SCRIPT AGAIN TO PRINT\n'
     NEXT_ID = 'ember249'
     NDAYS_ID = 'ember245'
     TABLE_ID = 'ember252'
-    FILE = 'data.txt'
-    ERROR = 'PAGE DID NOT LOAD IN TIME...'
+    ERROR = 'PAGE DID NOT LOAD IN TIME...\n'
     PARSER = 'html.parser'
+
+    @staticmethod
+    def file(date=None):
+        return 'data/data-' + (datetime.today().strftime('%y-%m-%d')
+                               if date is None
+                               else str(date)) + '.txt'
 
     @staticmethod
     def path(p):

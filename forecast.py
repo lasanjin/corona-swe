@@ -1,8 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import fhm_hax
 import numpy
+import fhm_hax
 import datetime
 from sys import argv
 from scipy.optimize import curve_fit
