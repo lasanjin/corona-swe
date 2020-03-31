@@ -8,46 +8,46 @@ import json
 
 
 def main():
-    # 0: Totalt antal per region (Not printed below)
-    # 1: Antal per dag region
-    # 2: Antal per dag ålder och kön, ALL=False
-    # 3: Totalt antal per kön
+    # 0: Totalt antal per region (Not printed)
+    # 1: Antal per dag region (Parsed)
+    # 2: Antal per dag ålder och kön (ALL=False)
+    # 3: Totalt antal per kön (ALL=False, GENDER=api.MAN|KVINNA)
     # 4: Totalt antal per åldersgrupp
-    a = 1
+    A = 1
 
     # url = api.url(a, False, api.MAN)
-    url = api.url(a)
+    url = api.url(A)
     raw = get_data(url)
 
     data = parse_data(raw)
 
-    # a = 1
+    # (a=1):
     print_progress(data, True)  # (date: total)
     # print_progress(data)  # (date: new-cases)
     # print_sum(data)  # (total-cases: region)
 
 
-def parse_data(raw, a=1):
+def parse_data(raw, A=1):
     data = OrderedDict()
 
     for i in raw['features']:
-        if a == 1:
+        if A == 1:
             date = format_date(i['attributes']['Statistikdatum'])
             data[date] = OrderedDict()
             # print(date)
 
         for i, (k, v) in enumerate(i['attributes'].items()):
-            if a == 1 and i > 3:
+            if A == 1 and i > 3:
                 data[date][k] = int(v)
                 # print(k, v)
 
-            # elif a == 2 and i > 1:
+            # elif A == 2 and i > 1:
                 # print(k, v)
 
-            # elif a == 3 and i > 1:
+            # elif A == 3 and i > 1:
                 # print(k, v)
 
-            # elif a == 4 and i > 0:
+            # elif A == 4 and i > 0:
                 # print(k, v)
 
         # print()
@@ -66,7 +66,7 @@ def sum_time_series(time_series):
         Counter())
 
 
-def build_progress(data, TOTAL=False):
+def build_progress(data):
     progress = OrderedDict()
     prev = 0
     for k, v in data.items():

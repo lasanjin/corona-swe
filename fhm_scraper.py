@@ -28,6 +28,8 @@ def main():
     button = get_element(driver, C.NEXT_ID)
     ndays = int(npage[npage.rindex(' ')+1:])
 
+    print(C.OK)
+
     time_series = parse_data(driver, button, ndays)
     data = parse_time_series(time_series)
 
@@ -37,10 +39,11 @@ def main():
 
 
 def parse_data(driver, button, ndays):
+    print(C.SDATA)
     time_series = SortedDict()
 
     for i in range(ndays):
-        soup = BeautifulSoup(driver.page_source, 'html.parser')
+        soup = BeautifulSoup(driver.page_source, C.PARSER)
         div = soup.find(id=C.TABLE_ID)
         tds = div.find_all('td')
 
@@ -66,8 +69,9 @@ def parse_data(driver, button, ndays):
 
 def parse_time_series(time_series):
     data = dict()
-    data['time_series'] = time_series
-    data['total'] = sum_time_series(time_series)
+    data['TIME_SERIES'] = time_series
+    data['TOTAL'] = sum_time_series(time_series)
+    data['PROGRESS'] = build_progress(time_series)
 
     return data
 
@@ -78,18 +82,28 @@ def sum_time_series(time_series):
         Counter())
 
 
+def build_progress(data):
+    progress = OrderedDict()
+    prev = 0
+    for k, v in data.items():
+        prev += sum(v.values())
+        progress[k] = prev
+
+    return progress
+
+
 def build_driver():
     # prepare the option for the chrome driver
     options = webdriver.ChromeOptions()
     options.add_argument('--headless')
     options.add_argument("--disable-webgl")
 
-    chrome = os.path.abspath('driver/chromium/chrome')
+    chrome = os.path.abspath(C.path('chrome'))
     if os.path.isfile(chrome):
         options.binary_location = chrome
     # start chrome driver
     driver = webdriver.Chrome(
-        executable_path=os.path.abspath('driver/chromedriver'),
+        executable_path=os.path.abspath(C.path('chromedriver')),
         options=options)
 
     return driver
@@ -102,6 +116,7 @@ def get_element(driver, ID):
             ec.element_to_be_clickable((By.ID, ID)))
 
     except TimeoutException:
+        print(C.ERROR)
         driver.quit()
 
     return element
@@ -153,10 +168,19 @@ class api:
 
 class C:
     FDATA = "\nFETCHING DATA...\n"
+    SDATA = "SCRAPING DATA...\n"
+    OK = 'OK\n'
     NEXT_ID = 'ember249'
     NDAYS_ID = 'ember245'
     TABLE_ID = 'ember252'
     FILE = 'data.txt'
+    ERROR = 'PAGE DID NOT LOAD IN TIME...'
+    PARSER = 'html.parser'
+
+    @staticmethod
+    def path(p):
+        return 'driver/chromium/' + p \
+            if p == 'chrome' else 'driver/' + p
 
 
 if __name__ == "__main__":

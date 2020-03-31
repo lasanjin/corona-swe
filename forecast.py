@@ -9,8 +9,8 @@ from scipy.optimize import curve_fit
 
 
 def main():
-    a = 1
-    url = fhm_hax.api.url(a)
+    A = 1
+    url = fhm_hax.api.url(A)
     raw = fhm_hax.get_data(url)
     data = fhm_hax.parse_data(raw)
     progress = fhm_hax.build_progress(data)
@@ -36,19 +36,18 @@ def exponential(x, a, k, b):
 
 
 def get_function(data):
+    dates = []
     xarr = []
     yarr = []
-    dates = []
     x = 1
 
     for k, v in data.items():
-        y = int(v)
-
-        # if y > 0:
-        yarr.append(y)
-        xarr.append(x)
         dates.append(k)
 
+        y = int(v)
+        yarr.append(y)
+
+        xarr.append(x)
         x += 1
 
     # p0 = scipy.optimize.curve_fit() will gueress a value of 1 for all parameters
@@ -56,22 +55,20 @@ def get_function(data):
     # Always explicitly supply own initial guesses
     popt, pcov = curve_fit(exponential, xarr, yarr, p0=(0, 0.1, 0))
     r = 5
-    # print(popt, pcov)
-    # quit()
 
     return round(popt[0], r), round(popt[1], r), round(popt[2], r), dates
 
 
 def print_function(a, k, dates, b=0):
-    print('{}e^({}x)+{}'.format(a, k, b))  # a*e^(x*k)+b
+    print(C.FUNC.format(a, k, b))  # a*e^(x*k)+b
     print()
 
 
 def print_forecast(a, k, dates, n, b=0):
     for x, date in enumerate(dates):
-        print('{:15}{:>10}'.format(date, int(a * numpy.exp(x * k) + b)))
+        print(C.FORMAT.format(date, int(a * numpy.exp(x * k) + b)))
 
-    last = datetime.datetime.strptime(dates[-1], "%y-%m-%d")
+    last = datetime.datetime.strptime(dates[-1], C.DATE)
 
     start = len(dates)
     end = start + n
@@ -79,14 +76,20 @@ def print_forecast(a, k, dates, n, b=0):
     for i, x in enumerate(range(start, end)):
         date = next_date(last, i)
 
-        print('{:15}{:>10}'.format(date, int(a * numpy.exp(x * k) + b)))
+        print(C.FORMAT.format(date, int(a * numpy.exp(x * k) + b)))
 
 
 def next_date(last, i):
     next_date = last + datetime.timedelta(days=(i + 1))
-    date = next_date.strftime("%y-%m-%d")
+    date = next_date.strftime(C.DATE)
 
     return date
+
+
+class C:
+    FORMAT = '{:15}{:>10}'
+    FUNC = '{}e^({}x)+{}'
+    DATE = '%y-%m-%d'
 
 
 if __name__ == "__main__":
