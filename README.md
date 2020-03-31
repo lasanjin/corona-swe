@@ -2,6 +2,10 @@
 Data from [Folkhälsomydigheten](https://www.folkhalsomyndigheten.se/smittskydd-beredskap/utbrott/aktuella-utbrott/covid-19/aktuellt-epidemiologiskt-lage/). Runs with Python 3+
 
 
+## Demo
+<img src="demo.gif" width="800">
+
+
 ## How to run
  - [Scraper](fhm_scraper.py) 
    - **NOTE**: if no Chrome-browser
