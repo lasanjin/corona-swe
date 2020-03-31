@@ -72,8 +72,8 @@ def parse_data(driver, button, ndays):
 def parse_time_series(time_series):
     data = dict()
     data['TIME_SERIES'] = time_series
-    data['TOTAL'] = sum_time_series(time_series)
     data['PROGRESS'] = build_progress(time_series)
+    data['TOTAL'] = sum_time_series(time_series)
 
     return data
 
@@ -88,7 +88,7 @@ def build_progress(data):
     progress = OrderedDict()
     prev = 0
     for k, v in data.items():
-        prev += sum(v.values())
+        prev += v['Totalt']
         progress[k] = prev
 
     return progress
