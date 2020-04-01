@@ -23,7 +23,6 @@ def main():
     data = read_data()
 
     if data is not None:
-        print(C.AVAILABLE)
         ask(data)
         quit()
 
@@ -207,8 +206,8 @@ def create_dir():
 
 def read_data(FILE=None):
     file = C.file() if FILE is None else FILE
-    if os.path.isfile(file):
 
+    if os.path.isfile(file):
         try:
             f = open(file, "r")
             json_data = json.load(f)
@@ -235,8 +234,7 @@ class api:
 
 
 class C:
-    NAVAILABLE = 'NO DATA AVAILABLE FROM TODAY...'
-    AVAILABLE = 'DATA AVAILABLE FROM TODAY...'
+    NAVAILABLE = 'NO SAVED DATA AVAILABLE FROM TODAY...'
     LDRIVER = 'LOADING DRIVER...'
     DRIVERL = 'DRIVER LOADED:'
     FINDE = 'FINDING ELEMENTS...'
