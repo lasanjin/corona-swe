@@ -23,11 +23,12 @@ def main():
     data = read_data()
 
     if data is not None:
-        print_json(data)
+        print(C.AVAILABLE)
+        ask(data)
         quit()
 
     else:
-        print(C.NODATA)
+        print(C.NAVAILABLE)
 
     try:
         print(C.LDRIVER)
@@ -55,17 +56,22 @@ def main():
     data, date = parse_data(data)
 
     save_data(data, date)
-    # print_json(data)
 
     print_time(C.TIME, t0)
 
+    ask(data)
+
 
 def print_time(string, t):
-    print('{} {}{}'.format(string, round_sec(time.time() - t), 's'))
+    print('{} {}{}'.format(string, round(time.time() - t, 2), 's'))
 
 
-def round_sec(sec):
-    return round(sec, 2)
+def ask(data):
+    sys.stdout.write(C.PRINT)
+    choice = input().lower()
+
+    if choice is not None and choice == C.YES:
+        print_json(data)
 
 
 def scrape_data(table, button, ndays):
@@ -137,7 +143,7 @@ def build_driver():
 
 
 def get_element(driver, ID, BUTTON=False):
-    timeout = 10
+    timeout = 20
     exp_cond = ec.element_to_be_clickable((By.ID, ID)) if BUTTON \
         else ec.presence_of_element_located((By.ID, ID))
 
@@ -229,7 +235,8 @@ class api:
 
 
 class C:
-    NODATA = 'NO DATA AVAILABLE FROM TODAY...'
+    NAVAILABLE = 'NO DATA AVAILABLE FROM TODAY...'
+    AVAILABLE = 'DATA AVAILABLE FROM TODAY...'
     LDRIVER = 'LOADING DRIVER...'
     DRIVERL = 'DRIVER LOADED:'
     FINDE = 'FINDING ELEMENTS...'
@@ -241,6 +248,8 @@ class C:
     TIME = 'TIME:'
     SAVED = 'DATA SAVED'
     LOADED = 'DATA LOADED'
+    PRINT = 'PRINT DATA ? [Y/N]: '
+    YES = 'y'
     DIV_ID = 'ember119'
     PAGINATION_ID = 'ember245'
     BUTTON_ID = 'ember249'
