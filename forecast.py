@@ -3,19 +3,22 @@
 
 import numpy
 import fhm_hax
+import fhm_scraper as fs
 import datetime
 from sys import argv
 from scipy.optimize import curve_fit
 
 
 def main():
-    A = 1
-    url = fhm_hax.api.url(A)
-    raw = fhm_hax.get_data(url)
-    data = fhm_hax.parse_data(raw)
-    progress = fhm_hax.build_progress(data)
+    # A = 1
+    # url = fhm_hax.api.url(A)
+    # raw = fhm_hax.get_data(url)
+    # data = fhm_hax.parse_data(raw)
+    # progress = fhm_hax.build_progress(data)
+    file = fs.C.file('20-03-31')
+    data = fs.read_data(file)
 
-    a, k, b, dates = get_function(progress)
+    a, k, b, dates = get_function(data['TOTAL_CASES_PER_DAY'])
     ndays = 7  # ndays forecast
     _b = 0  # b-value in exp function
 

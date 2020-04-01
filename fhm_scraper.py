@@ -19,67 +19,88 @@ from modules.selenium.common.exceptions import TimeoutException
 
 
 def main():
+    t0 = time.time()
     data = read_data()
+
     if data is not None:
         print_json(data)
         quit()
 
-    print(C.FDATA)
-
-    driver = build_driver()
-    driver.get(api.API)
-
-    npage = get_element(driver, C.NDAYS_ID).text
-    button = get_element(driver, C.NEXT_ID)
-    ndays = int(npage[npage.rindex(' ')+1:])
-
-    print(C.OK)
-
-    time_series = parse_data(driver, button, ndays)
-    data, date = parse_time_series(time_series)
-
-    save_data(data, date)
-
-
-def parse_data(driver, button, ndays):
-    print(C.SDATA)
-    time_series = SortedDict()
+    else:
+        print(C.NODATA)
 
     try:
-        for i in range(ndays):
-            soup = BeautifulSoup(driver.page_source, C.PARSER)
-            div = soup.find(id=C.TABLE_ID)
-            tds = div.find_all('td')
+        print(C.LDRIVER)
+        t1 = time.time()
+        driver = build_driver()
+        driver.get(api.API)
+        print_time(C.DRIVERL, t1)
 
-            dt = tds[1].text
-            date = format_date(dt)
-            time_series[date] = OrderedDict()
-            region = ''
+        print(C.FINDE)
+        t2 = time.time()
+        table = get_element(driver, C.TABLE_ID)
+        button = get_element(driver, C.BUTTON_ID, True)
+        pagination = get_element(driver, C.PAGINATION_ID)
+        ndays = parse_pagination(pagination)
+        print_time(C.EFOUND, t2)
 
-            for i, td in enumerate(tds[2:]):
-
-                if i % 2 != 0:
-                    n = int(td.text)
-                    time_series[date][region] = n
-
-                region = td.text
-
-            button.click()
+        print(C.SDATA)
+        t3 = time.time()
+        data = scrape_data(table, button, ndays)
+        print_time(C.DATAS, t3)
 
     finally:
         driver.quit()
 
-    return time_series
+    data, date = parse_data(data)
+
+    save_data(data, date)
+    # print_json(data)
+
+    print_time(C.TIME, t0)
 
 
-def parse_time_series(time_series):
-    data = OrderedDict()
-    data['NEW_CASES_PER_DAY_REGIONS'] = time_series
-    data['NEW_CASES_PER_DAY'] = build_progress(time_series)
-    data['TOTAL_CASES_PER_DAY'] = build_progress(time_series, True)
-    data['TOTAL_CASES_REGIONS'] = sum_time_series(time_series)
+def print_time(string, t):
+    print('{} {}{}'.format(string, round_sec(time.time() - t), 's'))
 
-    return data, time_series.keys()[-1]
+
+def round_sec(sec):
+    return round(sec, 2)
+
+
+def scrape_data(table, button, ndays):
+    data = SortedDict()
+
+    for i in range(ndays):
+        html = table.get_attribute('innerHTML')
+        soup = BeautifulSoup(html, C.PARSER)
+        rows = soup.find_all('tr')
+
+        dt = rows[0].find_all('td')[1].text
+        date = format_date(dt)
+
+        data[date] = OrderedDict()
+
+        for row in rows[1:]:
+            col = row.find_all('td')
+            region = col[0].text
+            n = int(col[1].text)
+
+            data[date][region] = n
+
+        button.click()
+
+    return data
+
+
+def parse_data(data):
+    parsed = OrderedDict()
+    parsed['NEW_CASES_PER_DAY_REGIONS'] = data
+    parsed['NEW_CASES_PER_DAY'] = parse_time_series(data)
+    parsed['TOTAL_CASES_PER_DAY'] = parse_time_series(data, True)
+    parsed['TOTAL_CASES_REGIONS'] = sum_time_series(data)
+
+    return parsed, data.keys()[-1]
 
 
 def sum_time_series(time_series):
@@ -88,7 +109,7 @@ def sum_time_series(time_series):
         Counter())
 
 
-def build_progress(data, TOTAL=False):
+def parse_time_series(data, TOTAL=False, REGION=None):
     progress = OrderedDict()
     prev = 0
     for k, v in data.items():
@@ -115,17 +136,32 @@ def build_driver():
     return driver
 
 
-def get_element(driver, ID):
+def get_element(driver, ID, BUTTON=False):
     timeout = 10
+    exp_cond = ec.element_to_be_clickable((By.ID, ID)) if BUTTON \
+        else ec.presence_of_element_located((By.ID, ID))
+
     try:
-        element = WebDriverWait(driver, timeout).until(
-            ec.element_to_be_clickable((By.ID, ID)))
+        wait = WebDriverWait(
+            driver,
+            timeout,
+            poll_frequency=0.1)
+
+        element = wait.until(exp_cond)
 
     except TimeoutException:
         print(C.ERROR)
-        driver.quit()
 
     return element
+
+
+def parse_pagination(pagination):
+    p = pagination.text
+    try:
+        return int(p[p.rindex(' ')+1:])
+
+    except ValueError:
+        print(C.PERROR)
 
 
 def format_date(date):
@@ -163,8 +199,8 @@ def create_dir():
         pass
 
 
-def read_data():
-    file = C.file()
+def read_data(FILE=None):
+    file = C.file() if FILE is None else FILE
     if os.path.isfile(file):
 
         try:
@@ -193,15 +229,22 @@ class api:
 
 
 class C:
-    FDATA = "\nFETCHING DATA...\n"
-    SDATA = "SCRAPING DATA...\n"
-    OK = 'OK\n'
-    LOADED = '\nDATA LOADED\n'
-    SAVED = 'DATA SAVED, RUN SCRIPT AGAIN TO PRINT\n'
-    NEXT_ID = 'ember249'
-    NDAYS_ID = 'ember245'
+    NODATA = 'NO DATA AVAILABLE FROM TODAY...'
+    LDRIVER = 'LOADING DRIVER...'
+    DRIVERL = 'DRIVER LOADED:'
+    FINDE = 'FINDING ELEMENTS...'
+    EFOUND = 'ELEMENTS FOUND:'
+    SDATA = 'SCRAPING DATA...'
+    DATAS = 'DATA SCRAPED:'
+    PERROR = 'CAN NOT FIND PAGINATION'
+    ERROR = 'PAGE DID NOT LOAD IN TIME...'
+    TIME = 'TIME:'
+    SAVED = 'DATA SAVED'
+    LOADED = 'DATA LOADED'
+    DIV_ID = 'ember119'
+    PAGINATION_ID = 'ember245'
+    BUTTON_ID = 'ember249'
     TABLE_ID = 'ember252'
-    ERROR = 'PAGE DID NOT LOAD IN TIME...\n'
     PARSER = 'html.parser'
     DIR = 'data'
 
