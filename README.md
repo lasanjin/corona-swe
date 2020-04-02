@@ -18,7 +18,7 @@ $ ./fhm_scraper.py
 </br>
 
  - [Hax](fhm_hax.py)
-   - Much faster alternative (gets data directly from API)
+   - Faster alternative (gets data directly from API)
 ```
 $ ./fhm_hax.py
 ```
