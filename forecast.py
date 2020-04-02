@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import numpy
-import fhm_hax
+import fhm
 import fhm_scraper as fs
 import datetime
 from sys import argv
@@ -10,15 +10,20 @@ from scipy.optimize import curve_fit
 
 
 def main():
-    # A = 1
-    # url = fhm_hax.api.url(A)
-    # raw = fhm_hax.get_data(url)
-    # data = fhm_hax.parse_data(raw)
-    # progress = fhm_hax.build_progress(data)
-    file = fs.C.file('20-03-31')
-    data = fs.read_data(file)
+    A = 1
+    url = fhm.api.url(A)
+    raw = fhm.get_data(url)
+    data = fhm.parse_regions(raw)
+    progress = fhm.build_progress(data)
 
-    a, k, b, dates = get_function(data['TOTAL_CASES_PER_DAY'])
+    # file = fs.C.file('20-03-31')
+    # data = fs.read_data(file)
+    # if data is None:
+    #     print('NO SUCH FILE')
+    #     quit()
+    # data['TOTAL_CASES_PER_DAY']
+
+    a, k, b, dates = get_function(progress)
     ndays = 7  # ndays forecast
     _b = 0  # b-value in exp function
 

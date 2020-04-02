@@ -51,7 +51,7 @@ def main():
     elif p0 == 4:
         data = parse_age_groups(jdata)
 
-        print_age_groups(data)
+        print_age_groups(data, p1)
         print_age_groups_sum(data)
 
 
@@ -153,8 +153,9 @@ def print_regions(data, ALL=False, TOTAL=False, REGION=None):
             print(color.blue(REGION.upper() + ' NYA FALL'))
 
     if ALL:
+        l = len(data) - 1
         prev = [0] * 21  # regions
-        for date, v in data.items():
+        for i, (date, v) in enumerate(data.items()):
             if REGION is None:
                 print(color.blue(date))
 
@@ -167,7 +168,7 @@ def print_regions(data, ALL=False, TOTAL=False, REGION=None):
                     prev[idx] = prev[idx] + n if TOTAL else n
                     print(C.FORMAT.format(date, prev[idx]))
 
-            if REGION is None:
+            if REGION is None and i != l:
                 print()
 
     else:
@@ -193,22 +194,21 @@ def print_regions_sum(data):
 
 
 def print_age_groups(data, SORT=None):
-    for k, v in sort(data, SORT):
+    l = len(data)
+    for i, (k, v) in enumerate(sort(data, SORT)):
         print(color.blue(k))
 
-        for i, (case, n) in enumerate(v.items()):
-            if i == 2:
-                print(C.FORMAT.format(case, n))
+        for case, n in v.items():
+            print(C.FORMAT.format(case, n))
 
-            else:
-                print(C.FORMAT.format(case, n))
-
-        print()
+        if i != l:
+            print()
 
 
 def sort(data, SORT):
     s = {0: 'Fall', 1: 'Avlidna', 2: 'Intensivvårdade'}.get(SORT)
     SORT = None if s is None else s
+
     return data.items() if SORT is None else sorted(data.items(), key=lambda x: x[1][s])
 
 
@@ -216,12 +216,8 @@ def print_age_groups_sum(data):
     tot = sum_data(data)
     print(color.blue('TOTALT'))
 
-    for i, (k, v) in enumerate(tot.items()):
-        if i == 2:
-            print(C.FORMAT.format(k, v))
-
-        else:
-            print(C.FORMAT.format(k, v))
+    for k, v in tot.items():
+        print(C.FORMAT.format(k, v))
 
 
 def print_gender(data):
@@ -305,7 +301,7 @@ class api:
 
 class C:
     FORMAT = '{:<20}{:>15}'
-    USAGE = 'Usage: ./fhm_hax.py 0 [1..3] | 2 | 3 | 4 | 1 1..4 [REGION]\n' \
+    USAGE = 'Usage: ./fhm_hax.py 0 [1..3] | 1 1..4 [REGION] | 2 | 3 | 4 [1..3]\n' \
         '\n0: Total per region' \
             '\n\t\t0: Sort by "Fall"' \
             '\n\t\t1: Sort by "Intensivvårdade"' \
@@ -314,11 +310,14 @@ class C:
             '\n\t\t0: New cases per day' \
             '\n\t\t1: New cases per day per region' \
             '\n\t\t2: Total cases per day' \
-            '\n\t\t3: Total per day per region' \
+            '\n\t\t3: Total cases per day per region' \
             '\n\t\t4: Total per region' \
         '\n2: No data yet' \
         '\n3: Total per gender' \
         '\n4: Total per age group' \
+            '\n\t\t0: Sort by "Fall"' \
+            '\n\t\t1: Sort by "Intensivvårdade"' \
+            '\n\t\t2: Sort by "Avlidna"' \
         '\n\nExamples:' \
             '\n\t\t./fhm.py 0 1' \
             '\n\t\t./fhm.py 1 1 Västra Götaland'
