@@ -84,10 +84,10 @@ def parse_regions(jdata):
         date = format_date(i['attributes']['Statistikdatum'])
         data[date] = OrderedDict()
 
-        for i, (k, v) in enumerate(i['attributes'].items()):
+        for i, (region, v) in enumerate(i['attributes'].items()):
             if i > 3 and i < 25:  # only regions
                 n = 0 if v is None else v
-                text = k.replace('_', ' ')
+                text = region.replace('_', ' ')
 
                 data[date][text] = int(n)
 
@@ -248,11 +248,11 @@ def get_params():
 
         try:
             tmp = ' '.join(argv[1:][2:]).title()
-            p2 = tmp if bool(tmp) else None
+            p2 = tmp if bool(tmp) else None  # no empty string
         except Exception:
             pass
 
-        if p0 < 0 or p0 > 4 or p1 > 4:
+        if p0 < 0 or p0 > 4 and p1 > 4:
             print(C.USAGE)
             quit()
 
