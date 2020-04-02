@@ -55,36 +55,6 @@ def main():
         print_age_groups_sum(data)
 
 
-def get_params():
-    try:
-        p0 = int(argv[1:][0])
-        p1 = None
-        p2 = None
-
-        try:
-            p1 = int(argv[1:][1])
-        except Exception:
-            if p0 == 1:
-                print(C.USAGE)
-                quit()
-
-        try:
-            tmp = ' '.join(argv[1:][2:]).title()
-            p2 = tmp if bool(tmp) else None
-        except Exception:
-            pass
-
-        if p0 < 0 or p0 > 4 or p1 > 4:
-            print(C.USAGE)
-            quit()
-
-        return p0, p1, p2
-
-    except Exception:
-        print(C.USAGE)
-        quit()
-
-
 def parse_cases_per_region(jdata):
     data = OrderedDict()
     region = None
@@ -261,6 +231,36 @@ def print_cases_per_region(data, SORT):
 
 def print_cases_per_region_sum(data):
     print_age_groups_sum(data)
+
+
+def get_params():
+    try:
+        p0 = int(argv[1:][0])
+        p1 = None
+        p2 = None
+
+        try:
+            p1 = int(argv[1:][1])
+        except Exception:
+            if p0 == 1:
+                print(C.USAGE)
+                quit()
+
+        try:
+            tmp = ' '.join(argv[1:][2:]).title()
+            p2 = tmp if bool(tmp) else None
+        except Exception:
+            pass
+
+        if p0 < 0 or p0 > 4 or p1 > 4:
+            print(C.USAGE)
+            quit()
+
+        return p0, p1, p2
+
+    except Exception:
+        print(C.USAGE)
+        quit()
 
 
 def get_data(url):
