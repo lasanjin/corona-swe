@@ -14,41 +14,41 @@ def main():
     # p=2: Antal per dag ålder och kön  # NO DATA
     # p=3: Totalt antal per kön
     # p=4: Totalt antal per åldersgrupp
-    p, t = get_params()
+    p0, p1, p2 = get_params()
 
-    url = api.url(p)
+    url = api.url(p0)
     jdata = get_data(url)
 
-    if p == 0:
+    if p0 == 0:
         data = parse_cases_per_region(jdata)
 
-        print_cases_per_region(data, t)
+        print_cases_per_region(data, p1)
         print_cases_per_region_sum(data)
 
-    elif p == 1:
+    elif p0 == 1:
         data = parse_regions(jdata)
 
-        if t == 1:
-            print_regions(data, False),  # (date: new-cases)
-        elif t == 2:
-            print_regions(data, True, False),  # (date: new-cases per region)
-        elif t == 3:
-            print_regions(data, False, True),  # (date: total)
-        elif t == 4:
-            print_regions(data, True, True),  # (date: total per region)
-        elif t == 5:
-            print_regions_sum(data)  # (region: total-cases)
+        if p1 == 0:  # (date: new-cases)
+            print_regions(data, False),
+        elif p1 == 1:  # (date: new-cases per region)
+            print_regions(data, True, False, p2),
+        elif p1 == 2:  # (date: total)
+            print_regions(data, False, True),
+        elif p1 == 3:  # (date: total per region)
+            print_regions(data, True, True, p2),
+        elif p1 == 4:  # (region: total-cases)
+            print_regions_sum(data)
 
-    elif p == 2:
+    elif p0 == 2:
         print('NO DATA')
 
-    elif p == 3:
+    elif p0 == 3:
         data = parse_gender(jdata)
 
         print_gender(data)
         print_gender_sum(data)
 
-    elif p == 4:
+    elif p0 == 4:
         data = parse_age_groups(jdata)
 
         print_age_groups(data)
@@ -57,21 +57,28 @@ def main():
 
 def get_params():
     try:
-        p = int(argv[1:][0])
-        t = ''
-
-        if p < 0 and p > 8:
-            print(C.USAGE)
-            quit()
+        p0 = int(argv[1:][0])
+        p1 = None
+        p2 = None
 
         try:
-            t = int(argv[1:][1])
+            p1 = int(argv[1:][1])
         except Exception:
-            if p == 1:
+            if p0 == 1:
                 print(C.USAGE)
                 quit()
 
-        return p, t
+        try:
+            tmp = ' '.join(argv[1:][2:]).title()
+            p2 = tmp if bool(tmp) else None
+        except Exception:
+            pass
+
+        if p0 < 0 or p0 > 4 or p1 > 4:
+            print(C.USAGE)
+            quit()
+
+        return p0, p1, p2
 
     except Exception:
         print(C.USAGE)
@@ -110,7 +117,9 @@ def parse_regions(jdata):
         for i, (k, v) in enumerate(i['attributes'].items()):
             if i > 3 and i < 25:  # only regions
                 n = 0 if v is None else v
-                data[date][k] = int(n)
+                text = k.replace('_', ' ')
+
+                data[date][text] = int(n)
 
     return data
 
@@ -163,26 +172,39 @@ def build_progress(data):
     return progress
 
 
-def print_regions(data, ALL=False, TOTAL=False):
+def print_regions(data, ALL=False, TOTAL=False, REGION=None):
+    if REGION is not None:
+        if list(data.values())[-1].get(REGION) is None:
+            print('NO SUCH REGION')
+            quit()
+        else:
+            print(color.blue(REGION.upper()))
+
     if ALL:
         prev = [0] * 21  # regions
-        for k, v in data.items():
-            print(color.blue(k))
+        for date, v in data.items():
+            if REGION is None:
+                print(color.blue(date))
 
-            for idx, (i, j) in enumerate(v.items()):
-                prev[idx] = prev[idx] + j if TOTAL else j
+            for idx, (region, n) in enumerate(v.items()):
+                if REGION is None:
+                    prev[idx] = prev[idx] + n if TOTAL else n
+                    print(C.FORMAT.format(region, prev[idx]))
 
-                print(C.FORMAT.format(i, prev[idx]))
+                elif REGION == region:
+                    prev[idx] = prev[idx] + n if TOTAL else n
+                    print(C.FORMAT.format(date, prev[idx]))
 
-            print()
+            if REGION is None:
+                print()
 
     else:
         prev = 0
-        for k, v in data.items():
-            s = sum(v.values())
-            prev = prev + s if TOTAL else s
+        for date, v in data.items():
+            n = sum(v.values())
+            prev = prev + n if TOTAL else n
 
-            print(C.FORMAT.format(k, prev))
+            print(C.FORMAT.format(date, prev))
 
 
 def print_regions_sum(data):
@@ -208,7 +230,7 @@ def print_age_groups(data, SORT=None):
 
 
 def sort(data, SORT):
-    s = {1: 'Fall', 2: 'Avlidna', 3: 'Intensivvårdade'}.get(SORT)
+    s = {0: 'Fall', 1: 'Avlidna', 2: 'Intensivvårdade'}.get(SORT)
     SORT = None if s is None else s
     return data.items() if SORT is None else sorted(data.items(), key=lambda x: x[1][s])
 
@@ -276,20 +298,23 @@ class api:
 
 class C:
     FORMAT = '{:<20}{:>15}'
-    USAGE = 'usage: ./fhm_hax.py 0 [1..3] | 2 | 3 | 4 | 1 1..4\n' \
+    USAGE = 'Usage: ./fhm_hax.py 0 [1..3] | 2 | 3 | 4 | 1 1..4 [REGION]\n' \
         '\n0: Total per region' \
-            '\n\t\t1: Sort by "Fall"' \
-            '\n\t\t2: Sort by "Intensivvårdade"' \
+            '\n\t\t0: Sort by "Fall"' \
+            '\n\t\t1: Sort by "Intensivvårdade"' \
             '\n\t\t2: Sort by "Avlidna"' \
         '\n1: Custom:' \
-            '\n\t\t1: New cases per day' \
-            '\n\t\t2: New cases per day per region' \
-            '\n\t\t3: Total cases per day' \
-            '\n\t\t4: Total per day per region' \
-            '\n\t\t5: Total per region' \
+            '\n\t\t0: New cases per day' \
+            '\n\t\t1: New cases per day per region' \
+            '\n\t\t2: Total cases per day' \
+            '\n\t\t3: Total per day per region' \
+            '\n\t\t4: Total per region' \
         '\n2: No data yet' \
         '\n3: Total per gender' \
-        '\n4: Total per age group'
+        '\n4: Total per age group' \
+        '\n\nExamples:' \
+            '\n\t\t./fhm.py 0 1' \
+            '\n\t\t./fhm.py 1 1 Västra Götaland'
 
 
 class color:
