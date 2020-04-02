@@ -147,8 +147,10 @@ def print_regions(data, ALL=False, TOTAL=False, REGION=None):
         if list(data.values())[-1].get(REGION) is None:
             print('NO SUCH REGION')
             quit()
+        elif TOTAL:
+            print(color.blue(REGION.upper() + ' TOTALT'))
         else:
-            print(color.blue(REGION.upper()))
+            print(color.blue(REGION.upper() + ' NYA FALL'))
 
     if ALL:
         prev = [0] * 21  # regions
@@ -169,6 +171,11 @@ def print_regions(data, ALL=False, TOTAL=False, REGION=None):
                 print()
 
     else:
+        if TOTAL:
+            print(color.blue('SVERIGE TOTALT'))
+        else:
+            print(color.blue('SVERIGE NYA FALL'))
+
         prev = 0
         for date, v in data.items():
             n = sum(v.values())
