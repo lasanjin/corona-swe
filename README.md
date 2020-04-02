@@ -17,10 +17,10 @@ $ ./fhm_scraper.py
 
 </br>
 
- - [Hax](fhm_hax.py)
+ - [Fhm](fhm.py)
    - Faster alternative (gets data directly from API)
 ```
-$ ./fhm_hax.py
+$ ./fhm.py
 ```
 
 </br>
