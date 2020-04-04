@@ -36,7 +36,7 @@ def main():
         driver.get(api.API)
         print_time(C.DRIVERL, t1)
 
-        print(C.FINDE)
+        print(C.LOOKE)
         t2 = time.time()
         table = get_element(driver, C.TABLE_ID)
         button = get_element(driver, C.BUTTON_ID, True)
@@ -237,7 +237,7 @@ class C:
     NAVAILABLE = 'NO SAVED DATA AVAILABLE FROM TODAY...'
     LDRIVER = 'LOADING DRIVER...'
     DRIVERL = 'DRIVER LOADED:'
-    FINDE = 'FINDING ELEMENTS...'
+    LOOKE = 'LOOKING FOR ELEMENTS...'
     EFOUND = 'ELEMENTS FOUND:'
     SDATA = 'SCRAPING DATA...'
     DATAS = 'DATA SCRAPED:'
@@ -249,9 +249,9 @@ class C:
     PRINT = 'PRINT DATA ? [Y/N]: '
     YES = 'y'
     DIV_ID = 'ember119'
-    PAGINATION_ID = 'ember245'
-    BUTTON_ID = 'ember249'
-    TABLE_ID = 'ember252'
+    PAGINATION_ID = 'ember277'
+    BUTTON_ID = 'ember282'
+    TABLE_ID = 'ember284'
     PARSER = 'html.parser'
     DIR = 'data'
 
