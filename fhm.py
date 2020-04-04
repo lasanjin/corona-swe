@@ -206,7 +206,7 @@ def print_age_groups(data, SORT=None):
 
 
 def sort(data, SORT):
-    s = {0: 'Fall', 1: 'Avlidna', 2: 'Intensivvårdade'}.get(SORT)
+    s = {1: 'Fall', 2: 'Avlidna', 3: 'Intensivvårdade'}.get(SORT)
     SORT = None if s is None else s
 
     return data.items() if SORT is None else sorted(data.items(), key=lambda x: x[1][s])
