@@ -117,7 +117,7 @@ def build_func_data(data):
 
 
 def show_graph(popt, xarr, yarr, EXP=True, LAST_DAY=None):
-    ld = len(xarr) if LAST_DAY is None else LAST_DAY
+    ld = len(xarr) + ndays if LAST_DAY is None else LAST_DAY
     plot_x = numpy.linspace(0, ld)
     plot_y = exponential(plot_x, *popt) if EXP else logistic(plot_x, *popt)
 
