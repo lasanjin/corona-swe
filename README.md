@@ -26,8 +26,9 @@ $ ./fhm.py
 </br>
 
  - [Forecast](forecast.py) 
-   - Based on exponential growth
-   - **Requires** `numpy` and `scipy`
+   - Based on exponential growth or logistic function
+   - **Requires** `numpy`, `scipy` and `matplotlib` 
+     - Set `SHOW=True` if you want to show graph
 ```
-$ ./forecast
+$ ./forecast -l | -e
 ```
