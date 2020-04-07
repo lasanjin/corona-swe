@@ -1,55 +1,113 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import json
 import fhm
 import numpy
-import datetime
-from sys import argv
 from scipy.optimize import curve_fit
+from datetime import datetime, timedelta
 try:
+    import matplotlib.ticker as ticker
     import matplotlib.pyplot as plt
+    import matplotlib.dates as mdate
 except ImportError:
     pass
 
 
 ndays = 7  # ndays forecast
-SHOW = False  # show graph
 
 
 def main():
-    func = get_params()
-
-    A = 1
-    url = fhm.api.url(A)
+    url = fhm.api.url(1)
     raw = fhm.get_data(url)
     data = fhm.parse_regions(raw)
     progress = fhm.build_progress(data)
 
-    if func == C.EXP:
-        a, k, b, dates, xy_data = get_exp_func(progress)
-        B = 0  # b-value in exp function
-        print_exp_func(a, k, B)
-        if SHOW:
-            show_graph([a, k, b], xy_data[0], xy_data[1])
-        else:
-            print_forecast(a, k, B, dates, ndays, C.EXP)
+    # Get everything for plot & print
+    dates = list(progress.keys())
+    xarr, yarr = build_func_data(progress)
+    a, k_e, b, L, k_l, x0 = get_functions(xarr, yarr)
+    B = 0  # b  # b-value in exp function
 
-    elif func == C.LOG:
-        L, k, x0, dates, xy_data = get_logistic_func(progress)
-        print_exp_func(L, k, x0)
-        if SHOW:
-            last_day = calc_last_day(k, x0)
-            show_graph([L, k, x0], xy_data[0], xy_data[1], False, last_day)
-        else:
-            print_forecast(L, k, x0, dates, ndays, C.LOG)
+    # Print functions and data
+    print_functions(a, k_e, B, L, k_l, x0)
+    print_forecast(L, k_l, x0, a, k_e, B, dates, yarr, ndays)
 
-    else:
-        print(C.USAGE)
+    # Print last expected date and estimated number of confirmed cases based on logistic function
+    start = datetime.strptime(dates[0], "%y-%m-%d").date()
+    print_last_day(L, k_l, x0, start)
+
+    # Plot graph
+    try:
+        # Generate dates for x-axis
+        x_values = [start + timedelta(days=x)
+                    for x in range(len(dates) + ndays)]
+
+        # Generate y-values
+        end = len(x_values)
+        x = numpy.linspace(0, end, num=end)
+        y_values_e = exponential(x, *[a, k_e, B])
+        y_values_l = logistic(x, *[L, k_l, x0])
+
+        # Set size
+        plt.rcParams['figure.figsize'] = [16, 9]
+        plt.rc('font', size=10)
+
+        # Format x-axis & y-axis
+        fig, ax = plt.subplots()
+        fig.autofmt_xdate()
+        formatter = mdate.DateFormatter('%y-%m-%d')
+        ax.xaxis.set_major_formatter(formatter)
+        ax.get_xaxis().set_major_locator(mdate.DayLocator(interval=7))
+        ax.yaxis.set_major_formatter(ticker.StrMethodFormatter('{x:,.0f}'))
+
+        plt.scatter(
+            x_values[:len(xarr)],
+            yarr,
+            zorder=3,
+            marker='o',
+            s=40,
+            alpha=0.75,
+            edgecolors="dimgrey",
+            color="lightgrey",
+            label="Real")
+
+        plt.plot(
+            x_values,
+            y_values_e,
+            marker='.',
+            markersize=4,
+            linewidth=1,
+            color='firebrick',
+            label="Exponential")
+
+        plt.plot(
+            x_values,
+            y_values_l,
+            marker='.',
+            markersize=4,
+            linewidth=1,
+            color='green',
+            label="Logistic")
+
+        plt_text(x_values, yarr, -1)
+        plt_text(x_values, y_values_e, -ndays)
+        plt_text(x_values, y_values_l, -ndays)
+
+        plt.grid()
+        plt.legend()
+        plt.show()
+
+    except Exception as e:
+        print(e.args)
+
+
+def plt_text(x, y, pos):
+    plt.text(x[-ndays], y[pos], int(y[pos]), color="dimgrey")
 
 
 def calc_last_day(k, x0):
-    # Estimating last day with threshold very close to 1 (exactly 1 will take infinitely long time)
+    # Estimating last day with threshold very close to 1
+    # Exactly 1 will take infinitely long time
     threshold = 1.0001
     return int(round(
         (-1 / k) * numpy.log((1 - threshold) / (threshold * numpy.exp(-k) - 1)) + x0))
@@ -63,125 +121,112 @@ def logistic(x, L, k, x0):
     return L / (1 + numpy.exp(-k * (x - x0)))  # L/(1+e^(-k*(x-x0)))
 
 
-def get_exp_func(data):
-    xarr, yarr, dates = build_func_data(data)
-
-    # p0 = scipy.optimize.curve_fit() will gueress a value of 1 for all parameters
-    # This is generally not a good idea
-    # Always explicitly supply own initial guesses
-    popt, pcov = curve_fit(
-        exponential,
-        xarr,
-        yarr,
-        p0=(0, 0.1, 0))
+def get_functions(xarr, yarr):
+    popt_e = fit_curve(exponential, xarr, yarr, 0.1)
+    popt_l = fit_curve(logistic, xarr, yarr, 1)
 
     r = 5
-    a, k, b = popt
+    a, k_e, b = popt_e
+    L, k_l, x0 = popt_l
 
-    return round(a, r), round(k, r), round(b, r), dates, [xarr, yarr]
+    return round(a, r), round(k_e, r), round(b, r), round(L, r), round(k_l, r), round(x0, r)
 
 
-def get_logistic_func(data):
-    xarr, yarr, dates = build_func_data(data)
+def fit_curve(func, xarr, yarr, p01):
+    # p0 = scipy.optimize.curve_fit() will gueress a value of 1 for all parameters.
+    # This is generally not a good idea.
+    # Always explicitly supply own initial guesses.
 
-    # Use maxfev to set a high number of iterations to assure it will converge
+    # Use maxfev to set a high number of iterations to assure it will converge.
     popt, pcov = curve_fit(
-        logistic,
+        func,
         xarr,
         yarr,
-        maxfev=1000000,
-        p0=(0, 0.1, 0))
+        p0=(0, p01, 0),
+        maxfev=100000)
 
-    r = 5
-    L, k, x0 = popt
-
-    return round(L, r), round(k, r), round(x0, r), dates, [xarr, yarr]
+    return popt
 
 
 def build_func_data(data):
-    xarr = []
-    yarr = []
-    dates = []
-    x = 1
+    xarr, yarr = [], []
 
-    for k, v in data.items():
-        dates.append(k)
-
+    for x, v in enumerate(data.values()):
         y = int(v)
         yarr.append(y)
         xarr.append(x)
 
-        x += 1
-
-    return xarr, yarr, dates
+    return xarr, yarr
 
 
-def show_graph(popt, xarr, yarr, EXP=True, LAST_DAY=None):
-    ld = len(xarr) + ndays if LAST_DAY is None else LAST_DAY
-    plot_x = numpy.linspace(0, ld)
-    plot_y = exponential(plot_x, *popt) if EXP else logistic(plot_x, *popt)
-
-    plt.plot(plot_x, plot_y, 'r-')
-    plt.scatter(xarr, yarr)
-
-    plt.show()
+def print_functions(a, k, b, L, k_l, x0):
+    # a*e^(x*k)+b
+    print('\nEXPONENTIAL: {}e^({}x)+{}'.format(a, k, b))
+    # L/(1+e^(-k*(x-x0)))
+    print('\nLOGISTIC: {}/e^(-{}*(x-{}))'.format(L, k, x0))
 
 
-def print_exp_func(a, k, b):
-    print('{}e^({}x)+{}'.format(a, k, b))  # a*e^(x*k)+b
-    print()
+def print_last_day(L, k_l, x0, start):
+    ndays = calc_last_day(k_l, x0)
+
+    last_day = start + timedelta(days=ndays)
+    nconfirmed = logistic(ndays, L, k_l, x0)
+
+    print('\n{}\t{}'.format(C.LASTD, last_day))
+    print('{}\t\t{:,.0f}\n'.format(C.EST, int(nconfirmed)))
 
 
-def print_logistic_func(L, k, x0):
-    print('{}/e^(-{}*(x-{}))'.format(L, k, x0))  # L/(1+e^(-k*(x-x0)))
-    print()
+def print_forecast(L, k_l, x0, a, k_e, b, dates, yarr, ndays):
+    print_header()
 
-
-def print_forecast(aL, k, bx0, dates, ndays, FUNC):
     for x, date in enumerate(dates):
-        print_value(date, x, aL, k, bx0, FUNC)
+        print_data(date, yarr[x], x, L, k_l, x0, a, k_e, b)
 
-    last = datetime.datetime.strptime(dates[-1], "%y-%m-%d")
+    last = datetime.strptime(dates[-1], "%y-%m-%d")
     start = len(dates)
     end = start + ndays
 
     for i, x in enumerate(range(start, end)):
         date = next_date(last, i)
-        print_value(date, x, aL, k, bx0, FUNC)
+        print_data(date, 0, x, L, k_l, x0, a, k_e, b)
 
 
-def print_value(date, x, aL, k, bx0, FUNC):
-    if FUNC == C.EXP:
-        print('{:15}{:>10}'.format(date, int(exponential(x, aL, k, bx0))))
-    else:
-        print('{:15}{:>10}'.format(date, int(logistic(x, aL, k, bx0))))
+def print_data(date, real, x, L, k_l, x0, a, k_e, b):
+    log = int(logistic(x, L, k_l, x0))
+    exp = int(exponential(x, a, k_e, b))
+
+    print(C.TABLE.format(date, real, exp, log))
 
 
 def next_date(last, i):
-    next_date = last + datetime.timedelta(days=(i + 1))
+    next_date = last + timedelta(days=(i + 1))
     date = next_date.strftime("%y-%m-%d")
 
     return date
 
 
-def get_params():
-    try:
-        return argv[1:][0]
-
-    except IndexError:
-        print(C.USAGE)
-        quit()
+def print_header():
+    l, h = C.header(C.HEADER)
+    print()
+    print(l)
+    print(h)
+    print(l)
 
 
 class C:
-    EXP = '-e'
-    LOG = '-l'
-    USAGE = 'Usage: ./forecast.py -e | -l\n' \
-        '\n-e: Exponential function' \
-        '\n-l: Logistic function' \
-        '\n\nExamples:' \
-            '\n\t\t./forecast.py -e' \
-            '\n\t\t./forecast.py -l'
+    ERROR = "\nINSTALL \"matplotlib\" TO PLOT GRAPH ?\n"
+    LASTD = "LAST DAY BASED ON LOGISTIC FUNCTION:"
+    EST = 'ESTIMATED INFECTED ON LAST DAY:'
+    TABLE = '{:10}{:>12,.0f}{:>12,.0f}{:>12,.0f}'
+    HEADER = '{:10}{:>12}{:>12}{:>12}'.format('Date', 'Real', 'Exp', 'Log')
+
+    @staticmethod
+    def header(head):
+        return C.line(head), head
+
+    @staticmethod
+    def line(head):
+        return '-' * len(head.expandtabs())
 
 
 if __name__ == "__main__":
