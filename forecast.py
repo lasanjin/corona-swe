@@ -89,9 +89,11 @@ def main():
             color='green',
             label="Logistic")
 
-        plt_text(x_values, yarr, -1)
-        plt_text(x_values, y_values_e, -ndays)
-        plt_text(x_values, y_values_l, -ndays)
+        plt.text(
+            x_values[-ndays],
+            yarr[-1],
+            '{:,.0f}'.format(yarr[-1]),
+            color="dimgrey")
 
         plt.grid()
         plt.legend()
@@ -99,10 +101,6 @@ def main():
 
     except Exception as e:
         print(e.args)
-
-
-def plt_text(x, y, pos):
-    plt.text(x[-ndays], y[pos], int(y[pos]), color="dimgrey")
 
 
 def calc_last_day(k, x0):
@@ -161,9 +159,9 @@ def build_func_data(data):
 
 def print_functions(a, k, b, L, k_l, x0):
     # a*e^(x*k)+b
-    print('\nEXPONENTIAL: {}e^({}x)+{}'.format(a, k, b))
+    print('\nEXPONENTIAL:\t{}e^({}x)+{}'.format(a, k, b))
     # L/(1+e^(-k*(x-x0)))
-    print('\nLOGISTIC: {}/e^(-{}*(x-{}))'.format(L, k, x0))
+    print('\nLOGISTIC:\t{}/e^(-{}*(x-{}))'.format(L, k, x0))
 
 
 def print_last_day(L, k_l, x0, start):

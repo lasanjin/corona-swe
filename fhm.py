@@ -26,18 +26,24 @@ def main():
         print_cases_per_region_sum(data)
 
     elif p0 == 1:
-        data = parse_regions(jdata)
+        data = parse_regions(jdata, True) \
+            if p1 == 2 or p1 == 6 \
+            else parse_regions(jdata)
 
         if p1 == 0:  # (date: new-cases)
             print_regions(data, False),
         elif p1 == 1:  # (date: new-cases per region)
             print_regions(data, True, False, p2),
-        elif p1 == 2:  # (date: total)
+        elif p1 == 2:  # (date: deaths)
+            print_regions(data, True, False, C.DEATHS),
+        elif p1 == 3:  # (date: total)
             print_regions(data, False, True),
-        elif p1 == 3:  # (date: total per region)
+        elif p1 == 4:  # (date: total per region)
             print_regions(data, True, True, p2),
-        elif p1 == 4:  # (region: total-cases)
+        elif p1 == 5:  # (region: total-cases)
             print_regions_sum(data)
+        elif p1 == 6:  # (date: deaths)
+            print_regions(data, True, True, C.DEATHS),
 
     elif p0 == 2:
         print('NO DATA')
@@ -77,7 +83,7 @@ def parse_cases_per_region(jdata):
     return data
 
 
-def parse_regions(jdata):
+def parse_regions(jdata, DEATHS=False):
     data = OrderedDict()
 
     for i in jdata['features']:
@@ -85,10 +91,14 @@ def parse_regions(jdata):
         data[date] = OrderedDict()
 
         for i, (region, v) in enumerate(i['attributes'].items()):
-            if i > 3 and i < 25:  # only regions
-                n = 0 if v is None else v
-                text = region.replace('_', ' ')
+            n = 0 if v is None else v
+            text = region.replace('_', ' ')
 
+            if not DEATHS:
+                if i > 3 and i < 25:  # only regions
+                    data[date][text] = int(n)
+
+            elif i == 25:  # antal avlidna
                 data[date][text] = int(n)
 
     return data
@@ -109,7 +119,7 @@ def parse_age_groups(jdata):
 
                 else:
                     n = 0 if v is None else v
-                    text = k.replace('Totalt_antal_', '').capitalize()
+                    text = k.replace('Totalt_antal_', '')
 
                     data[age_group][text] = int(n)
 
@@ -300,6 +310,7 @@ class api:
 
 
 class C:
+    DEATHS = "Antal avlidna"
     FORMAT = '{:<20}{:>15}'
     USAGE = 'Usage: ./fhm_hax.py 0 [1..3] | 1 1..4 [REGION] | 2 | 3 | 4 [1..3]\n' \
         '\n0: Total per region' \
@@ -309,9 +320,11 @@ class C:
         '\n1: Custom:' \
             '\n\t\t0: New cases per day' \
             '\n\t\t1: New cases per day per region' \
-            '\n\t\t2: Total cases per day' \
-            '\n\t\t3: Total cases per day per region' \
-            '\n\t\t4: Total per region' \
+            '\n\t\t2: New deaths per day' \
+            '\n\t\t3: Total cases per day' \
+            '\n\t\t4: Total cases per day per region' \
+            '\n\t\t5: Total per region' \
+            '\n\t\t6: Total deaths' \
         '\n2: No data yet' \
         '\n3: Total per gender' \
         '\n4: Total per age group' \
