@@ -312,7 +312,7 @@ class api:
 class C:
     DEATHS = "Antal avlidna"
     FORMAT = '{:<20}{:>15}'
-    USAGE = 'Usage: ./fhm_hax.py 0 [1..3] | 1 1..4 [REGION] | 2 | 3 | 4 [1..3]\n' \
+    USAGE = 'Usage: ./fhm_hax.py 0 [0..2] | 1 0|1|3|4|5 [REGION] | 1 2|6 | 2 | 3 | 4 [0..2]\n' \
         '\n0: Total per region' \
             '\n\t\t0: Sort by "Fall"' \
             '\n\t\t1: Sort by "Intensivvårdade"' \
