@@ -29,5 +29,5 @@ $ ./fhm.py
    - Plots graph and outputs data based on exponential and logistic functions
      - **Requires** `numpy`, `scipy` and `matplotlib`
 ```
-$ ./forecast -l | -e
+$ ./forecast
 ```
