@@ -119,7 +119,7 @@ def parse_age_groups(jdata):
 
                 else:
                     n = 0 if v is None else v
-                    text = k.replace('Totalt_antal_', '')
+                    text = k.replace('Totalt_antal_', '').capitalize()
 
                     data[age_group][text] = int(n)
 
@@ -279,7 +279,6 @@ def get_params():
 def get_data(url):
     try:
         res = requests.get(url)
-
         res.raise_for_status()
 
         return json.loads(res.text)
@@ -306,7 +305,7 @@ class api:
 
     @staticmethod
     def url(n):
-        return api.URL + str(n) + api.PATH + (api.REGIONS if n == 0 else api.ALL)
+        return '{}{}{}{}'.format(api.URL, str(n), api.PATH, (api.REGIONS if n == 0 else api.ALL))
 
 
 class C:
