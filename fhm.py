@@ -5,6 +5,7 @@ from collections import Counter, OrderedDict
 from datetime import datetime, date
 from modules import requests
 from sys import argv
+import utils as u
 import json
 
 
@@ -158,16 +159,16 @@ def print_regions(data, ALL=False, TOTAL=False, REGION=None):
             print('NO SUCH REGION')
             quit()
         elif TOTAL:
-            print(color.blue(REGION.upper() + ' TOTALT'))
+            print(u.color.blue(REGION.upper() + ' TOTALT'))
         else:
-            print(color.blue(REGION.upper() + ' NYA FALL'))
+            print(u.color.blue(REGION.upper() + ' NYA FALL'))
 
     if ALL:
         l = len(data) - 1
         prev = [0] * 21  # regions
         for i, (date, v) in enumerate(data.items()):
             if REGION is None:
-                print(color.blue(date))
+                print(u.color.blue(date))
 
             for idx, (region, n) in enumerate(v.items()):
                 if REGION is None:
@@ -183,9 +184,9 @@ def print_regions(data, ALL=False, TOTAL=False, REGION=None):
 
     else:
         if TOTAL:
-            print(color.blue('SVERIGE TOTALT'))
+            print(u.color.blue('SVERIGE TOTALT'))
         else:
-            print(color.blue('SVERIGE NYA FALL'))
+            print(u.color.blue('SVERIGE NYA FALL'))
 
         prev = 0
         for date, v in data.items():
@@ -197,7 +198,7 @@ def print_regions(data, ALL=False, TOTAL=False, REGION=None):
 
 def print_regions_sum(data):
     tot = sum_data(data)
-    print(color.blue('TOTALT'))
+    print(u.color.blue('TOTALT'))
 
     for k, v in sorted(tot.items(), key=lambda k: k[1]):
         print(C.FORMAT.format(k, v))
@@ -206,7 +207,7 @@ def print_regions_sum(data):
 def print_age_groups(data, SORT=None):
     l = len(data)
     for i, (k, v) in enumerate(sort(data, SORT)):
-        print(color.blue(k))
+        print(u.color.blue(k))
 
         for case, n in v.items():
             print(C.FORMAT.format(case, n))
@@ -224,7 +225,7 @@ def sort(data, SORT):
 
 def print_age_groups_sum(data):
     tot = sum_data(data)
-    print(color.blue('TOTALT'))
+    print(u.color.blue('TOTALT'))
 
     for k, v in tot.items():
         print(C.FORMAT.format(k, v))
@@ -333,15 +334,6 @@ class C:
         '\n\nExamples:' \
             '\n\t\t./fhm.py 0 1' \
             '\n\t\t./fhm.py 1 1 Västra Götaland'
-
-
-class color:
-    DEFAULT = '\033[0m'
-    BLUE = '\033[94m'
-
-    @staticmethod
-    def blue(output):
-        return color.BLUE + str(output) + color.DEFAULT
 
 
 if __name__ == "__main__":

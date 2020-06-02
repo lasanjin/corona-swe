@@ -5,6 +5,7 @@ import os
 import sys
 import json
 import time
+import utils as u
 from datetime import datetime, date
 from collections import OrderedDict, Counter
 
@@ -27,49 +28,46 @@ def main():
         quit()
 
     else:
-        print(C.NAVAILABLE)
+        print(u.debug(), 'NO SAVED DATA AVAILABLE FROM TODAY...')
 
     try:
-        print(C.LDRIVER)
+        print(u.debug(), 'LOADING DRIVER...')
         t1 = time.time()
         driver = build_driver()
         driver.get(api.API)
-        print_time(C.DRIVERL, t1)
+        print_elapsed_time('DRIVER LOADED:', t1)
 
-        print(C.LOOKE)
+        print(u.debug(), 'LOOKING FOR ELEMENTS...')
         t2 = time.time()
         table = get_element(driver, C.TABLE_ID)
         button = get_element(driver, C.BUTTON_ID, True)
         pagination = get_element(driver, C.PAGINATION_ID)
         ndays = parse_pagination(pagination)
-        print_time(C.EFOUND, t2)
+        print_elapsed_time('ELEMENTS FOUND:', t2)
 
-        print(C.SDATA)
+        print(u.debug(), 'SCRAPING DATA...')
         t3 = time.time()
         data = scrape_data(table, button, ndays)
-        print_time(C.DATAS, t3)
+        print_elapsed_time('DATA SCRAPED:', t3)
 
     finally:
         driver.quit()
 
     data, date = parse_data(data)
-
     save_data(data, date)
-
-    print_time(C.TIME, t0)
-
+    print_elapsed_time('TIME:', t0)
     ask(data)
 
 
-def print_time(string, t):
-    print('{} {}{}'.format(string, round(time.time() - t, 2), 's'))
+def print_elapsed_time(string, t):
+    print('{} {} {}{}'.format(u.info(), string, round(time.time() - t, 2), 's'))
 
 
 def ask(data):
-    sys.stdout.write(C.PRINT)
+    sys.stdout.write(u.info() + ' PRINT DATA ? [Y/N]: ')
     choice = input().lower()
 
-    if choice is not None and choice == C.YES:
+    if choice is not None and choice == 'y':
         print_json(data)
 
 
@@ -78,7 +76,7 @@ def scrape_data(table, button, ndays):
 
     for i in range(ndays):
         html = table.get_attribute('innerHTML')
-        soup = BeautifulSoup(html, C.PARSER)
+        soup = BeautifulSoup(html, 'html.parser')
         rows = soup.find_all('tr')
 
         dt = rows[0].find_all('td')[1].text
@@ -155,7 +153,7 @@ def get_element(driver, ID, BUTTON=False):
         element = wait.until(exp_cond)
 
     except TimeoutException:
-        print(C.ERROR)
+        print(u.error(), 'PAGE DID NOT LOAD IN TIME...')
 
     return element
 
@@ -166,7 +164,7 @@ def parse_pagination(pagination):
         return int(p[p.rindex(' ')+1:])
 
     except ValueError:
-        print(C.PERROR)
+        print(u.error(), 'CAN NOT FIND PAGINATION')
 
 
 def format_date(date):
@@ -187,7 +185,7 @@ def save_data(data, date):
             json.dump(data, f, ensure_ascii=False)
             f.close()
 
-            print(C.SAVED)
+            print(u.info(), 'DATA SAVED')
 
         except OSError as eos:
             print('OSError:', eos)
@@ -213,7 +211,7 @@ def read_data(FILE=None):
             json_data = json.load(f)
             f.close()
 
-            print(C.LOADED)
+            print(u.info(), 'DATA LOADED')
 
         except IOError as eio:
             print("IOError:", eio)
@@ -234,26 +232,12 @@ class api:
 
 
 class C:
-    NAVAILABLE = 'NO SAVED DATA AVAILABLE FROM TODAY...'
-    LDRIVER = 'LOADING DRIVER...'
-    DRIVERL = 'DRIVER LOADED:'
-    LOOKE = 'LOOKING FOR ELEMENTS...'
-    EFOUND = 'ELEMENTS FOUND:'
-    SDATA = 'SCRAPING DATA...'
-    DATAS = 'DATA SCRAPED:'
-    PERROR = 'CAN NOT FIND PAGINATION'
-    ERROR = 'PAGE DID NOT LOAD IN TIME...'
-    TIME = 'TIME:'
-    SAVED = 'DATA SAVED'
-    LOADED = 'DATA LOADED'
-    PRINT = 'PRINT DATA ? [Y/N]: '
-    YES = 'y'
+    DIR = 'data'
     DIV_ID = 'ember119'
     PAGINATION_ID = 'ember277'
     BUTTON_ID = 'ember282'
     TABLE_ID = 'ember284'
     PARSER = 'html.parser'
-    DIR = 'data'
 
     @staticmethod
     def file(date=None):
