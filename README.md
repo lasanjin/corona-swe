@@ -3,7 +3,7 @@ Data from [Folkhälsomydigheten](https://www.folkhalsomyndigheten.se/smittskydd-
 
 
 ## Demo
-<img src="demo.gif" width="800">
+<img src="demo.gif">
 
 
 ## How to run

@@ -185,7 +185,7 @@ def save_data(data, date):
             json.dump(data, f, ensure_ascii=False)
             f.close()
 
-            print(u.info(), 'DATA SAVED')
+            print(u.debug(), 'DATA SAVED')
 
         except OSError as eos:
             print('OSError:', eos)
@@ -211,7 +211,7 @@ def read_data(FILE=None):
             json_data = json.load(f)
             f.close()
 
-            print(u.info(), 'DATA LOADED')
+            print(u.debug(), 'DATA LOADED')
 
         except IOError as eio:
             print("IOError:", eio)
