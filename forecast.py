@@ -3,6 +3,7 @@
 
 import fhm
 import numpy
+import utils as u
 from scipy.optimize import curve_fit
 from datetime import datetime, timedelta
 try:
@@ -159,9 +160,9 @@ def build_func_data(data):
 
 def print_functions(a, k, b, L, k_l, x0):
     # a*e^(x*k)+b
-    print('\nEXPONENTIAL:\t{}e^({}x)+{}'.format(a, k, b))
+    print('{} EXPONENTIAL:\t{}e^({}x)+{}'.format(u.info(), a, k, b))
     # L/(1+e^(-k*(x-x0)))
-    print('\nLOGISTIC:\t{}/e^(-{}*(x-{}))'.format(L, k, x0))
+    print('{} LOGISTIC:\t{}/e^(-{}*(x-{}))'.format(u.info(), L, k, x0))
 
 
 def print_last_day(L, k_l, x0, start):
@@ -170,8 +171,10 @@ def print_last_day(L, k_l, x0, start):
     last_day = start + timedelta(days=ndays)
     nconfirmed = logistic(ndays, L, k_l, x0)
 
-    print('\n{}\t{}'.format(C.LASTD, last_day))
-    print('{}\t\t{:,.0f}\n'.format(C.EST, int(nconfirmed)))
+    print('\n{} {}\t{}'
+          .format(u.info(), "LAST DAY BASED ON LOGISTIC FUNCTION:", last_day))
+    print('{} {}\t\t{:,.0f}\n'
+          .format(u.info(), 'ESTIMATED INFECTED ON LAST DAY:', int(nconfirmed)))
 
 
 def print_forecast(L, k_l, x0, a, k_e, b, dates, yarr, ndays):
@@ -212,9 +215,6 @@ def print_header():
 
 
 class C:
-    ERROR = "\nINSTALL \"matplotlib\" TO PLOT GRAPH ?\n"
-    LASTD = "LAST DAY BASED ON LOGISTIC FUNCTION:"
-    EST = 'ESTIMATED INFECTED ON LAST DAY:'
     TABLE = '{:10}{:>12,.0f}{:>12,.0f}{:>12,.0f}'
     HEADER = '{:10}{:>12}{:>12}{:>12}'.format('Date', 'Real', 'Exp', 'Log')
 
