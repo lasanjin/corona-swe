@@ -318,13 +318,13 @@ class C:
             '\n\t\t1: Sort by "Intensivvårdade"' \
             '\n\t\t2: Sort by "Avlidna"' \
         '\n1: Custom:' \
-            '\n\t\t0: New cases per day' \
-            '\n\t\t1: New cases per day per region' \
-            '\n\t\t2: New deaths per day' \
-            '\n\t\t3: Total cases per day' \
-            '\n\t\t4: Total cases per day per region' \
+            '\n\t\t0: New cases per date' \
+            '\n\t\t1: New cases per date per region' \
+            '\n\t\t2: New deaths per date' \
+            '\n\t\t3: Total cases per date' \
+            '\n\t\t4: Total cases per date per region' \
             '\n\t\t5: Total per region' \
-            '\n\t\t6: Total deaths' \
+            '\n\t\t6: Total deaths per date' \
         '\n2: No data yet' \
         '\n3: Total per gender' \
         '\n4: Total per age group' \
