@@ -87,7 +87,7 @@ def scrape_data(table, button, ndays):
         for row in rows[1:]:
             col = row.find_all('td')
             region = col[0].text
-            n = int(col[1].text)
+            n = int(col[1].text.replace(',', ''))
 
             data[date][region] = n
 
